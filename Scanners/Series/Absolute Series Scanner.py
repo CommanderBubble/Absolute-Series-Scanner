@@ -1313,23 +1313,27 @@ def Scan(path, files, media, dirs, language=None, root=None, **kwargs): #get cal
         reverse_path  = list(reversed(path.split(os.sep)))
         season_folder = []
         #season_folder_first = False
-        for dir in reverse_path[:-1]:                 # remove root folder from test, [:-1] Doesn't thow errors but gives an empty list if items don't exist, might not be what you want in other cases
+        for dir in reverse_path[:-1]:                    # remove root folder from test, [:-1] Doesn't thow errors but gives an empty list if items don't exist, might not be what you want in other cases
           match = SOURCE_IDS.search(dir)
           if match:  Log.info(u'Source id detected: {}'.format(match.group('yt') if match.group('yt') else match.group('id'))); break           #if it has a forced id, not a season folder
           dir_has_forced_id = False
-          for file in SOURCE_ID_FILES:                # check to see if the folder contains a forced id file
+          for file in SOURCE_ID_FILES:                   # check to see if the folder contains a forced id file
             file_fullpath = os.path.join(root, os.sep.join(list(reversed(reverse_path))), file)
             if os.path.isfile(file_fullpath):
               dir_has_forced_id = True
               Log.info(u'Source id detected: {}'.format(read_file(file_fullpath).strip()))
               break
-          if dir_has_forced_id == True: break         # if it has a forced id file, not a season folder
+          if dir_has_forced_id == True: break            # if it has a forced id file, not a season folder
           dir_clean = clean_string(dir, no_dash=True, no_underscore=True, no_dot=True)
-          for rx in SEASON_RX:                        # in anime, more specials folders than season folders, so doing it first
-            if rx.search(dir_clean):                  # get season number but Skip last entry in seasons (skipped folders)
-              if rx!=SEASON_RX[-1]:  season_folder.append(dir)  # and len(reverse_path)>=2:  # and folder==reverse_path[-2]:
-                #season_folder_first = True
-              reverse_path.remove(dir)                # Since iterating slice [:] or [:-1] doesn't hinder iteration. All ways to remove: reverse_path.pop(-1), reverse_path.remove(thing|array[0])
+          for rx in SEASON_RX:                           # in anime, more specials folders than season folders, so doing it first
+            if rx.search(dir_clean):                     # get season number but Skip last entry in seasons (skipped folders)
+              if rx!=SEASON_RX[-1]:
+                if rx == SEASON_RX[0] and has_forced_id: # if specials folder, and parent has a forced_id, we don't pass it off to the normal scanner
+                  break
+                else:
+                  season_folder.append(dir)  # and len(reverse_path)>=2:  # and folder==reverse_path[-2]:
+                  #season_folder_first = True
+              reverse_path.remove(dir)                   # Since iterating slice [:] or [:-1] doesn't hinder iteration. All ways to remove: reverse_path.pop(-1), reverse_path.remove(thing|array[0])
               break
 
         ### Call Grouping folders series ###
