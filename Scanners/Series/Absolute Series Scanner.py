@@ -1002,7 +1002,8 @@ def Scan(path, files, media, dirs, language=None, root=None, **kwargs): #get cal
       json_playlist_file = os.path.join(root, path, 'Playlist.info.json')  #"{}.info.json".format(id))
       if os.path.exists(json_playlist_file):
         Log.info(u'YouTube-dl Playlist file load {}'.format(os.path.relpath(json_playlist_file, root)))
-        json_playlist = Dict(json.loads(read_file(json_playlist_file)), 'entries')
+        ### private videos show up as null entries in the json file ###
+        json_playlist = [e for e in Dict(json.loads(read_file(json_playlist_file)), 'entries') if e is not None]
         for file in os.listdir(os.path.join(root, path)):
           if extension(file) not in VIDEO_EXTS or os.path.isdir(os.path.join(root, path, file)):  continue  #files only with video extensions
           for rank, video in enumerate(sorted(json_playlist, key = lambda i: (i["upload_date"])), start=1):
